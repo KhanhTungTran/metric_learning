@@ -14,7 +14,8 @@ from tensorflow.keras import layers
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-queryImageIndex = 21
+QUERY_IMAGE_NAME = "00019"
+NUM_NEIGHBORS = 5
 
 model = keras.models.load_model('cifar10_metric_model')
 
@@ -42,14 +43,16 @@ def load_raw_data(path):
     
     return features
 
+imgPaths = os.listdir('./input')
+queryImageIndex = imgPaths.index(QUERY_IMAGE_NAME + '.jpg')
+
 x_test = load_raw_data('./input')
 embeddings = model.predict(x_test)
 
 gram_matrix = np.einsum("ae,be->ab", embeddings, embeddings)
-near_neighbours = np.argsort(gram_matrix)[:, -(5 + 1) :]
+near_neighbours = np.argsort(gram_matrix)[:, -(NUM_NEIGHBORS + 1) :]
 
 anchor_near_neighbours = list(reversed(near_neighbours[queryImageIndex][:-1]))
-imgPaths = os.listdir('./input')
 print("Name of the image that we need to query: " + imgPaths[queryImageIndex])
 print("Results: ")
 for index in anchor_near_neighbours:
